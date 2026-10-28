@@ -1,0 +1,30 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node.js (if tools like `npx serve` or a bundler are added later)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Claude Code local settings
+.claude/settings.local.json
