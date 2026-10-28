@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Reflex Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Page header: name and current game status -->
+    <header class="page-header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><span class="logo-icon"></span></div>
+        <div>
+          <h1 class="brand-title">Reflex Lab</h1>
+          <p class="brand-tagline">Visual reaction time, measured to the millisecond</p>
+        </div>
+      </div>
+      <div class="status-badge" role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="statusBadgeText">Idle</span>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- How to play -->
+      <section class="card instructions-card" aria-labelledby="instructionsTitle">
+        <h2 class="card-title" id="instructionsTitle">How to play</h2>
+        <ol class="instruction-steps">
+          <li><span>Press <strong>Start</strong> or click the shape.</span></li>
+          <li><span>Wait 1 to 5 seconds for it to flash <strong class="text-go">green</strong>.</span></li>
+          <li><span>React fast: <kbd>Click</kbd> / <kbd>Space</kbd></span></li>
+          <li><span>Reacting before green is a <strong class="text-error">false start</strong>.</span></li>
+        </ol>
+        <div class="keyboard-hints">
+          <span><kbd>Esc</kbd> stop</span>
+        </div>
+      </section>
+
+      <!-- Game board: status text, controls, 3D shape and score guide -->
+      <section class="game-board" id="gameBoard" data-state="idle" tabindex="0"
+               aria-label="Game board. Click, tap or press Space to react." aria-describedby="statusMessage">
+
+        <div class="status-panel">
+          <p class="status-title">
+            <span id="statusTitle">Ready when you are</span>
+            <span class="new-best-badge" id="newBestBadge" hidden>New best</span>
+          </p>
+          <div class="result-row">
+            <p class="reaction-time" id="reactionTime" hidden></p>
+            <h2 class="status-subtitle" id="statusSubtitle">Reaction test</h2>
+          </div>
+          <p class="status-message" id="statusMessage">Press Start, then hit the stage the instant the shape turns green.</p>
+        </div>
+
+        <div class="game-controls" aria-label="Game controls">
+          <button type="button" class="button-primary" id="startStopButton" data-action="start">Start</button>
+          <span class="round-counter" id="roundCounter">Round 1</span>
+          <button type="button" class="button-secondary" id="resetButton" disabled>Reset</button>
+        </div>
+
+        <div class="scene-area">
+          <div class="scene-container">
+            <canvas class="scene-canvas" id="sceneCanvas" aria-hidden="true"></canvas>
+          </div>
+
+          <div class="score-guide" aria-label="Score guide">
+            <p class="score-guide-title">Score guide</p>
+            <ul class="score-guide-list">
+              <li class="score-tier" style="--tier-color: var(--color-excellent)"><span class="score-tier-label">Excellent</span><span class="score-tier-range">&lt; 200 ms</span></li>
+              <li class="score-tier" style="--tier-color: var(--color-result)"><span class="score-tier-label">Good</span><span class="score-tier-range">200&ndash;249</span></li>
+              <li class="score-tier" style="--tier-color: var(--color-text)"><span class="score-tier-label">Average</span><span class="score-tier-range">250&ndash;299</span></li>
+              <li class="score-tier" style="--tier-color: var(--color-waiting)"><span class="score-tier-label">Slow</span><span class="score-tier-range">300&ndash;399</span></li>
+              <li class="score-tier" style="--tier-color: var(--color-error)"><span class="score-tier-label">Way slow</span><span class="score-tier-range">400+</span></li>
+            </ul>
+          </div>
+
+          <div class="webgl-fallback-message" id="webglFallbackMessage" hidden>
+            3D rendering is unavailable on this device, so the test runs in 2D mode. Timing is unaffected.
+          </div>
+        </div>
+      </section>
+
+      <!-- Results: session statistics and the last 12 attempts -->
+      <div class="results-row">
+        <section class="card" aria-labelledby="sessionTitle">
+          <h2 class="card-title" id="sessionTitle">Session</h2>
+          <dl class="stats-grid">
+            <div class="stat-item" id="lastTimeStat">
+              <dt class="stat-label">Last</dt><dd class="stat-value">—</dd><dd class="stat-detail">&nbsp;</dd>
+            </div>
+            <div class="stat-item" id="averageTimeStat">
+              <dt class="stat-label">Average</dt><dd class="stat-value">—</dd><dd class="stat-detail">&nbsp;</dd>
+            </div>
+            <div class="stat-item stat-best" id="bestTimeStat">
+              <dt class="stat-label">Best</dt><dd class="stat-value">—</dd><dd class="stat-detail">&nbsp;</dd>
+            </div>
+            <div class="stat-item" id="consistencyStat">
+              <dt class="stat-label">Consistency</dt><dd class="stat-value">—</dd><dd class="stat-detail">std. deviation</dd>
+            </div>
+            <div class="stat-item" id="attemptCountStat">
+              <dt class="stat-label">Attempts</dt><dd class="stat-value">0</dd><dd class="stat-detail">valid reactions</dd>
+            </div>
+            <div class="stat-item stat-error" id="falseStartStat">
+              <dt class="stat-label">False starts</dt><dd class="stat-value">0</dd><dd class="stat-detail">0 timed out</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="card history-card" aria-labelledby="historyTitle">
+          <h2 class="card-title" id="historyTitle">Last 12 attempts <span class="card-title-unit">ms</span></h2>
+          <div class="history-chart">
+            <div class="chart-y-axis">
+              <span id="chartAxisMax">400</span>
+              <span id="chartAxisMiddle">200</span>
+              <span>0</span>
+            </div>
+            <div class="chart-plot-area">
+              <div class="chart-reference-line" id="chartReferenceLine">
+                <span class="chart-reference-label">typical 250</span>
+              </div>
+              <div class="chart-bars" id="chartBars"></div>
+            </div>
+            <div class="chart-x-axis"><span>older</span><span>latest</span></div>
+            <div class="chart-empty-message" id="chartEmptyMessage">Your reaction times will chart here as you play.</div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Read aloud by screen readers when the game state changes -->
+  <div class="visually-hidden" aria-live="assertive" id="screenReaderAnnouncer"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
